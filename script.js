@@ -114,15 +114,8 @@ $(document).ready(function () {
 		});
 
 	}
-		
+	
 
-
-
-//Agregamos nuevo marcador y ///NIVEL 3 /// le añadimos mi icono
-  //marker = L.marker([latLng.lat, latLng.lng]).addTo(mapFase1); 
-
-    //Agregamos popUp al nuevo marcador, queremos que se abra automáticamente
-    //marker.bindPopup("<b>Mis coordenadas son:</b><br><br>Lat: " + latLng.lat + "<br>Lng: " + latLng.lng).openPopup();
 
 
 	/* ////////////////// EVENTO ON CHANGE PARA FILTAR MARCADORES ////////////////// */
