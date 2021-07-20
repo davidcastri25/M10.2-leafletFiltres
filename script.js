@@ -25,17 +25,7 @@ $(document).ready(function () {
 	var data_markers = [];	
 
 
-//Por cada elemento de data (cada objeto restaurante)
-			/*$.each(data, function (index, element) {
-				//Creamos marcador
-				marker = L.marker([element.lat, element.lng]);
 
-				//AñadimospopUp al marcador
-				marker.bindPopup(`<b>${element.name}</b><br><br>
-				${element.address}<br>`);
-				
-				//
-			});  */
 
 	/* ////////////////// FASE 3.1 ////////////////// */	
 
@@ -55,9 +45,10 @@ $(document).ready(function () {
 			});			  
 			
 			
-			// 2) Añado de forma dinámica en el select los posibles tipos de restaurantes						
+			// 2) Añado de forma dinámica en el select los posibles tipos de restaurantes
 			
-			$.each(data_markers, function (index, element) {// Recorremos el array data_markers y guardamos todos los tipos de restaurantes en un nuevo array
+			// Recorremos el array data_markers y guardamos todos los tipos de restaurantes en un nuevo array
+			$.each(data_markers, function (index, element) {
 				for (let i = 0; i <= element.kind_foot.length; i++){
 					if (element.kind_foot[i] == ",") {
 						kindOfFoodHasComa = true;
@@ -77,17 +68,25 @@ $(document).ready(function () {
 
 				kindOfFoodHasComa = false;
 			});
-
-			 // Filtramos elementos repetidos de data_markers
-			restaurantTypesNoRepeated = restaurantTypes.filter((value, index) => {
+			
+			// Filtramos elementos repetidos de data_markers
+			restaurantTypesNoRepeated = restaurantTypes.filter((value, index) => { 
 				return restaurantTypes.indexOf(value) === index;
 				//El método indexOf retorna el índice de la PRIMERA ocurrencia de un elemento en un array
 				//Si el índice del elemento que estamos iterando con filter es igual al índice de la primera ocurrencia de ese elemento (arrValidaciones.indexOf(value)), se cumplirá la condición de filter para que nos retorne el valor en el nuevo array que se está generando. Si el índice del elemento que estamos iterando con filter es diferente al índice de la primera ocurrencia de ese elemento(arrValidaciones.indexOf(value)), significa que es una repetición.
 			});
 
+			//Añadimos una primera opción Todos con value all
+			$("#kind_food_selector").append(`<option selected value="all">Todos</option>`); 
+
+			//Añadimos dinámicamente todos los tipos de restaurante
+			$.each(restaurantTypesNoRepeated, function (index, element) { 
+				$("#kind_food_selector").append(`<option value="${element}">${element}</option>`);
+			});
 			
+
 			// 3) Llamo a la función para --> render_to_map(data_markers, 'all'); <-- para mostrar restaurantes en el mapa
-			
+			render_to_map(data_markers, 'all');
 		});
 
 	}
@@ -113,13 +112,56 @@ $(document).ready(function () {
 
 	/* ////////////////// FASE 3.2 ////////////////// */
 
-	function render_to_map(data_markers,filter){
+	function render_to_map(data_markers, filter){
 		
-		/*
-		FASE 3.2
-			1) Limpio todos los marcadores
-			2) Realizo un bucle para decidir que marcadores cumplen el filtro, y los agregamos al mapa
-		*/	
-				
+		let marker;
+		let photoImg;
+
+		// 1) Limpio todos los marcadores
+		markers.clearLayers();
+
+		// 2) Realizo un bucle para decidir que marcadores cumplen el filtro, y los agregamos al mapa
+		
+		//Si el filter es all, hay que sacar todos los restaurantes
+		if (filter == "all") {
+			$.each(data_markers, function (index, element) { 
+				//Creamos marcador
+				marker = L.marker([element.lat, element.lng]);
+
+				//Añadimos imagen
+				photoImg = `<img src="${element.photo}" style="display: block; margin-left: auto; margin-right: auto; width: 100%; object-fit: contain; margin-top: 25px; margin-bottom: 10px;">`;
+
+				//AñadimospopUp al marcador
+				marker.bindPopup(`${photoImg}<b>${element.name}</b><br>${element.address}<br>`);
+
+				//Añadimos marcador al cluster
+				markers.addLayer(marker);
+			});
+		}
+		else {
+			$.each(data_markers, function (index, element) {
+			
+				//Si la propiedad kind_foot (que es una string) del restaurante que estamos recorriendo contiene los caracteres del filtro que hemos seleccionado, crearemos un marcador para el restaurante y lo añadiremos
+				if (element.kind_foot.includes(filter)) {
+
+					//Creamos marcador
+					marker = L.marker([element.lat, element.lng]);
+
+					//Añadimos imagen
+					photoImg = `<img src="${element.photo}" style="display: block; margin-left: auto; margin-right: auto; width: 100%; object-fit: contain; margin-top: 25px; margin-bottom: 10px;">`;
+
+					//AñadimospopUp al marcador
+					marker.bindPopup(`${photoImg}<b>${element.name}</b><br>${element.address}<br>`);
+
+					//Añadimos marcador al cluster
+					markers.addLayer(marker);
+				}	 
+
+			});	
+		}
+		
+		
+		//Añadimos cluster al mapa
+		map.addLayer(markers);
 	}	
 }); 
