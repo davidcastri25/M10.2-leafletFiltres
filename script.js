@@ -10,22 +10,46 @@ $(document).ready(function () {
 	var pathAPI = `http://${nombreHost}${carpetaProyecto}/api/apiRestaurants.php`; //Ruta de la API
 
 	//console.log(pathAPI);
+
+
+
+	/* ////////////////// GEOLOCALIZACIÓN USUARIO PÁGINA////////////////// */ 
+
+	//FORMA ALTERNATIVA A MAP.LOCATE
+
+	/*var userLocation;
+
+	navigator.geolocation.getCurrentPosition( //Puede ser que obtengamos las coordenadas del punto de acceso del proveedor del servicio
+		(pos) => {
+			var { coords } = pos;
+			userLocation = [coords.latitude, coords.longitude];	
+		},
+		(err) => {
+			console.log(err);
+		},
+		{
+			enableHighAccuracy: true,
+			timeout: 5000,
+			maximumAge: 0
+		}
+	);  */
 	
 	
 	
 	/* ////////////////// CREACIÓN MAPA ////////////////// */
 
 	var map = L.map('mapid').on('load', onMapLoad).setView([41.400, 2.206], 9);
-	//map.locate({setView: true, maxZoom: 17});
+
+	map.locate({setView: true, maxZoom: 16}); // GEOLOCALIZACIÓN USUARIO: fijamos centro del mapa y zoom
 		
 	var tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
 
 	//en el clusters almaceno todos los markers
 	var markers = L.markerClusterGroup();
-	var data_markers = [];	
-
-
-
+	var data_markers = [];
+	
+	
+	
 
 	/* ////////////////// FASE 3.1 ////////////////// */	
 
@@ -114,9 +138,6 @@ $(document).ready(function () {
 
 	function render_to_map(data_markers, filter){
 		
-		let marker;
-		let photoImg;
-
 		// 1) Limpio todos los marcadores
 		markers.clearLayers();
 
@@ -125,43 +146,44 @@ $(document).ready(function () {
 		//Si el filter es all, hay que sacar todos los restaurantes
 		if (filter == "all") {
 			$.each(data_markers, function (index, element) { 
-				//Creamos marcador
-				marker = L.marker([element.lat, element.lng]);
-
-				//Añadimos imagen
-				photoImg = `<img src="${element.photo}" style="display: block; margin-left: auto; margin-right: auto; width: 100%; object-fit: contain; margin-top: 25px; margin-bottom: 10px;">`;
-
-				//AñadimospopUp al marcador
-				marker.bindPopup(`${photoImg}<b>${element.name}</b><br>${element.address}<br>`);
-
-				//Añadimos marcador al cluster
-				markers.addLayer(marker);
+				createMarker(element);
 			});
 		}
 		else {
 			$.each(data_markers, function (index, element) {
-			
 				//Si la propiedad kind_foot (que es una string) del restaurante que estamos recorriendo contiene los caracteres del filtro que hemos seleccionado, crearemos un marcador para el restaurante y lo añadiremos
 				if (element.kind_foot.includes(filter)) {
-
-					//Creamos marcador
-					marker = L.marker([element.lat, element.lng]);
-
-					//Añadimos imagen
-					photoImg = `<img src="${element.photo}" style="display: block; margin-left: auto; margin-right: auto; width: 100%; object-fit: contain; margin-top: 25px; margin-bottom: 10px;">`;
-
-					//AñadimospopUp al marcador
-					marker.bindPopup(`${photoImg}<b>${element.name}</b><br>${element.address}<br>`);
-
-					//Añadimos marcador al cluster
-					markers.addLayer(marker);
-				}	 
-
+					createMarker(element);
+				}
 			});	
 		}
 		
 		
 		//Añadimos cluster al mapa
 		map.addLayer(markers);
-	}	
+	}
+	
+	
+	function createMarker(element) {
+
+		let marker;
+		let photoImg;
+
+		//Creamos marcador
+		marker = L.marker([element.lat, element.lng]);
+
+		//Añadimos imagen
+		photoImg = `<img src="${element.photo}" style="display: block; margin-left: auto; margin-right: auto; width: 100%; object-fit: contain; margin-top: 25px; margin-bottom: 10px;">`;
+
+		//AñadimospopUp al marcador
+		marker.bindPopup(`${photoImg}<b>${element.name}</b><br>${element.address}<br>`);
+
+		//Añadimos evento click al marcador para centrar mapa
+		marker.on("click", e => {
+			map.setView([element.lat, element.lng]);
+		});
+
+		//Añadimos marcador al cluster
+		markers.addLayer(marker);
+	}
 }); 
